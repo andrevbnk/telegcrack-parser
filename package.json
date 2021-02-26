@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "parser-author",
+  "version": "0.0.1",
+  "description": "Telegcrack",
+  "main": "index.js",
+  "author": "https://github.com/andrevbnk/telegcrack-parser.git",
+  "license": "WTFPL",
+  "dependencies": {
+    "axios": "^0.21.0",
+    "cheerio": "^0.20.0",
+    "needle": "^1.0.0",
+    "tress": "^1.0.0"
+  }
+}
