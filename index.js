@@ -8,31 +8,36 @@ let pageCount = 33;
 const author = "Cat Cat";
 
 
+const checkError = html=> cheerio.load(html)('b').first().text()=="Fatal error";
+const sleep = (ms=10000) => new Promise((res,rej)=>setTimeout(res,ms));//Ставить задержку не меньше 5 секунд,
+
 const fetcher = async url => {
     const res = await axios.get(url);
+    if(checkError(res.data)){
+        await sleep(10000);
+        fetcher(url);
+    }
     return res.data;
 };
 
 const checkAuthor = async post => {
-    const x = cheerio.load(await post);
-    const authorName = x('address a').first().text();
+    const $ = cheerio.load(await post);
+    const authorName = $('address a').first().text();
     return authorName == author?true:false;
 }
 
 const getIndexList = async html =>{
  let href = [];
  const $ = cheerio.load(await html);
+//  console.log(html);
  $('li a').each((i,elem)=>{
     href.push($(elem).attr('href'));
  });
-//  href = href.slice(20,30);
- console.log(href,"  --- href");
  return href;
 }
 
 (async function(){
-    const res = await fetcher(url+pageCount);
-    const pageHtml = res.data;
+    const pageHtml = await fetcher(url+pageCount);
 
     const allPosts = await getIndexList(pageHtml);
     const filterPost = []; // const filterPosts = await allPosts().filter(async elem=>await checkAuthor(await fetcher(elem)))); Оказывается filter с async нельзя писать,не работает, так что пришлось через циклы
@@ -43,5 +48,11 @@ const getIndexList = async html =>{
             filterPost.push(linkPost);
         }
     }
+    console.log(filterPost);
+    fs.appendFile("html.txt",filterPost,(err)=>{
+        if(err){
+            throw error;
+        }
+    });
 
 })();
