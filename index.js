@@ -7,7 +7,7 @@ const url = `https://telegcrack.com/ru/found.php?offset=`;
 let pageCount = 33;
 const author = "Cat Cat";
 
-
+//
 const checkError = html=> cheerio.load(html)('b').first().text()=="Fatal error";
 const sleep = (ms=10000) => new Promise((res,rej)=>setTimeout(res,ms));//Ставить задержку не меньше 5 секунд,
 
