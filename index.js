@@ -1,26 +1,43 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
-const html = require('./html');
 
 const url = `https://telegcrack.com/ru/found.php?offset=`;
-let pageCount = 33;
-const author = "Cat Cat";
+const author = "Спартак Македонский";
 
 //
 const checkError = html=> cheerio.load(html)('b').first().text()=="Fatal error";
-const sleep = (ms=10000) => new Promise((res,rej)=>setTimeout(res,ms));//Ставить задержку не меньше 5 секунд,
+const sleep = (ms=60000) => new Promise((res,rej)=>setTimeout(res,ms));//Ставить задержку не меньше 30 секунд,
 
-const fetcher = async url => {
-    const res = await axios.get(url);
-    if(checkError(res.data)){
-        await sleep(10000);
-        fetcher(url);
+async function fetcher(url,ms) {
+    try{
+        const res = await axios.get(url);
+        if(checkError(res.data)){
+            console.log('Fatal Error');
+            await sleep(ms);
+            return fetcher(url);
+        }
+        return res.data;
     }
-    return res.data;
+    catch(err){
+        console.log('----------------------------------');
+        console.log(err?.response?.status,err?.status);
+        console.log('---------------------------------');
+        if(err?.status == 404 || err?.response?.status==404){
+            console.log('404');
+            return false;
+        }
+
+        await sleep(ms);
+        return fetcher(url)
+    }
+
 };
 
 const checkAuthor = async post => {
+    if(!post){
+        return false
+    }
     const $ = cheerio.load(await post);
     const authorName = $('address a').first().text();
     return authorName == author?true:false;
@@ -31,28 +48,41 @@ const getIndexList = async html =>{
  const $ = cheerio.load(await html);
 //  console.log(html);
  $('li a').each((i,elem)=>{
-    href.push($(elem).attr('href'));
+    //  console.log($(elem).text(),$(elem).text().length);
+    if($(elem).text().length >= 8){
+        href.push($(elem).attr('href'));
+    }
  });
  return href;
 }
 
 (async function(){
-    const pageHtml = await fetcher(url+pageCount);
+    for(let pageCount of [...Array(365)].map((elem,i)=>i).slice(8,365)){
+        await sleep(180000)
+        console.log(url+pageCount);
 
-    const allPosts = await getIndexList(pageHtml);
-    const filterPost = []; // const filterPosts = await allPosts().filter(async elem=>await checkAuthor(await fetcher(elem)))); Оказывается filter с async нельзя писать,не работает, так что пришлось через циклы
-    for( const linkPost of allPosts){
-        const res = await fetcher(linkPost);
-        const check = await checkAuthor(res);
-        if(check){
-            filterPost.push(linkPost);
+        const pageHtml = await fetcher(url+pageCount,180000);
+        // console.log(pageHtml, 'page');
+        let allPosts = await getIndexList(pageHtml);
+        console.log(allPosts);
+
+        const filterPost = []; // const filterPosts = await allPosts().filter(async elem=>await checkAuthor(await fetcher(elem)))); Оказывается filter с async нельзя писать,не работает, так что пришлось через циклы
+        for (const linkPost of allPosts){
+            const res = await fetcher(linkPost,1500);
+            const check = await checkAuthor(res);
+            console.log(check,linkPost)
+            if(check){
+                filterPost.push(linkPost);
+                console.log(filterPost);
+                fs.appendFile("html.json",`{"${pageCount}":${JSON.stringify(filterPost)}},`,(err)=>{
+                    if(err){
+                        throw error;
+                    }
+                });
+            }
         }
+
     }
-    console.log(filterPost);
-    fs.appendFile("html.txt",filterPost,(err)=>{
-        if(err){
-            throw error;
-        }
-    });
+
 
 })();
