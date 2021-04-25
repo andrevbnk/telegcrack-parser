@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "start": "node index.js "
+  },
+
   "private": true,
   "name": "parser-author",
   "version": "0.0.1",

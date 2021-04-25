@@ -2,6 +2,11 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 
+const express = require("express");
+const app = express();  
+
+
+
 const urlTelecrack = `https://telegcrack.com/ru/found.php?offset=`;
 
 
@@ -115,3 +120,8 @@ const getIndexList = async html =>{
 
 
 })();
+
+
+const server = app.listen(dbConfig.PORT, function() {
+    console.log('server running on port '+PORT);
+  });
