@@ -2,10 +2,31 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 
-const url = `https://telegcrack.com/ru/found.php?offset=`;
-const author = "Спартак Македонский";
+const urlTelecrack = `https://telegcrack.com/ru/found.php?offset=`;
 
-//
+
+const dbConfig = require('./db.config');
+
+const author = dbConfig.AUTHOR;
+const db = require("./models");
+const Post = db.post;
+
+
+db.mongoose
+  .connect(`mongodb+srv://${dbConfig.HOST}:${dbConfig.PASSWORD}@cluster0.fmmbl.mongodb.net/${dbConfig.DB}?retryWrites=true&w=majority`, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+  })
+  .then(() => {
+    console.log("Successfully connect to MongoDB.");
+  })
+  .catch(err => {
+    console.error("Connection error", err);
+    process.exit();
+  });
+  
+
 const checkError = html=> cheerio.load(html)('b').first().text()=="Fatal error";
 const sleep = (ms=60000) => new Promise((res,rej)=>setTimeout(res,ms));//Ставить задержку не меньше 30 секунд,
 
@@ -58,27 +79,35 @@ const getIndexList = async html =>{
 
 (async function(){
     for(let pageCount of [...Array(365)].map((elem,i)=>i).slice(8,365)){
-        await sleep(180000)
-        console.log(url+pageCount);
+        await sleep(180000);
+        console.log(urlTelecrack+pageCount);
 
-        const pageHtml = await fetcher(url+pageCount,180000);
+        const pageHtml = await fetcher(urlTelecrack+pageCount,180000);
         // console.log(pageHtml, 'page');
         let allPosts = await getIndexList(pageHtml);
         console.log(allPosts);
 
-        const filterPost = []; // const filterPosts = await allPosts().filter(async elem=>await checkAuthor(await fetcher(elem)))); Оказывается filter с async нельзя писать,не работает, так что пришлось через циклы
+        // const filterPost = []; // const filterPosts = await allPosts().filter(async elem=>await checkAuthor(await fetcher(elem)))); Оказывается filter с async нельзя писать,не работает, так что пришлось через циклы
+        
         for (const linkPost of allPosts){
             const res = await fetcher(linkPost,1500);
             const check = await checkAuthor(res);
             console.log(check,linkPost)
             if(check){
-                filterPost.push(linkPost);
-                console.log(filterPost);
-                fs.appendFile("html.json",`{"${pageCount}":${JSON.stringify(filterPost)}},`,(err)=>{
+
+                const postModel = new Post({
+                    link:linkPost,
+                    author:author,
+                    pageTelecrack:pageCount,
+                  });
+                  
+                postModel.save((err,data)=>{
                     if(err){
-                        throw error;
+                        console.log('err');
                     }
-                });
+                    console.log(data);
+                  });
+
             }
         }
 

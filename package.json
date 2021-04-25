@@ -9,6 +9,8 @@
   "dependencies": {
     "axios": "^0.21.0",
     "cheerio": "^0.20.0",
+    "mongodb": "^3.6.3",
+    "mongoose": "^5.12.5",
     "needle": "^1.0.0",
     "tress": "^1.0.0"
   }
