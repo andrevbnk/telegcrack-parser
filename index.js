@@ -118,7 +118,6 @@ const getIndexList = async html =>{
 
     }
 
-
 })();
 
 

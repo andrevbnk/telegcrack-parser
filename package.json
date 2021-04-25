@@ -2,7 +2,6 @@
   "scripts": {
     "start": "node index.js "
   },
-
   "private": true,
   "name": "parser-author",
   "version": "0.0.1",
@@ -13,6 +12,7 @@
   "dependencies": {
     "axios": "^0.21.0",
     "cheerio": "^0.20.0",
+    "express": "^4.17.1",
     "mongodb": "^3.6.3",
     "mongoose": "^5.12.5",
     "needle": "^1.0.0",
