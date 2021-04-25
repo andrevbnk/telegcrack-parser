@@ -121,6 +121,6 @@ const getIndexList = async html =>{
 })();
 
 
-const server = app.listen(dbConfig.PORT, function() {
-    console.log('server running on port '+dbConfig.PORT);
+const server = app.listen(process.env.PORT || dbConfig.PORT, function() {
+    console.log('server running on port ',process.env.PORT || dbConfig.PORT);
   });
