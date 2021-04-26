@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const express = require("express");
 const app = express();  
-
+const path = require('path');
 
 
 const urlTelecrack = `https://telegcrack.com/ru/found.php?offset=`;
@@ -124,3 +124,7 @@ const getIndexList = async html =>{
 const server = app.listen(process.env.PORT || dbConfig.PORT, function() {
     console.log('server running on port ',process.env.PORT || dbConfig.PORT);
   });
+
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname + '/index.html'));
+});
