@@ -81,9 +81,9 @@ const getIndexList = async html =>{
  });
  return href;
 }
-
+const iterator = [...Array(365)].map((elem,i)=>i).slice(26,365)
 (async function(){
-    for(let pageCount of [...Array(365)].map((elem,i)=>i).slice(8,365)){
+    for(let pageCount of iterator){
         await sleep(180000);
         console.log(urlTelecrack+pageCount);
 
