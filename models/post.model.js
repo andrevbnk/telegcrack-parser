@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-const curDate = new Date(Date.now());
 const Post = mongoose.model(
   "Post",
   new mongoose.Schema({

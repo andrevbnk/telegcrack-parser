@@ -14,8 +14,9 @@ const dbConfig = require('./db.config');
 
 const author = dbConfig.AUTHOR;
 const db = require("./models");
-const Post = db.post;
 
+const Post = db.post;
+const Count = db.count;
 
 db.mongoose
   .connect(`mongodb+srv://${dbConfig.HOST}:${dbConfig.PASSWORD}@cluster0.fmmbl.mongodb.net/${dbConfig.DB}?retryWrites=true&w=majority`, {
@@ -23,7 +24,7 @@ db.mongoose
     useUnifiedTopology: true,
     useCreateIndex: true,
   })
-  .then(() => {
+  .then((db) => {
     console.log("Successfully connect to MongoDB.");
   })
   .catch(err => {
@@ -31,7 +32,6 @@ db.mongoose
     process.exit();
   });
   
-
 const checkError = html=> cheerio.load(html)('b').first().text()=="Fatal error";
 const sleep = (ms=60000) => new Promise((res,rej)=>setTimeout(res,ms));//Ставить задержку не меньше 30 секунд,
 
@@ -57,7 +57,6 @@ async function fetcher(url,ms) {
         await sleep(ms);
         return fetcher(url)
     }
-
 };
 
 const checkAuthor = async post => {
@@ -72,7 +71,9 @@ const checkAuthor = async post => {
 const getIndexList = async html =>{
  let href = [];
  const $ = cheerio.load(await html);
+
 //  console.log(html);
+
  $('li a').each((i,elem)=>{
     //  console.log($(elem).text(),$(elem).text().length);
     if($(elem).text().length >= 8){
@@ -81,11 +82,25 @@ const getIndexList = async html =>{
  });
  return href;
 }
-const iterator = [...Array(365)].map((elem,i)=>i).slice(26,365);
+
+
+// {$inc : {'count' : 1,'posts.count' : 1,''}},
+
+const getCounter = async ()=>{
+    const count = await Count.findOneAndUpdate(
+        {isCounter:true},
+        {$inc : {'count' : 1}}, 
+        {new:true},
+    );
+    return count.count
+};
+const iterator = [...Array(365)].map((elem,i)=>i).slice(73,380); //
 
 ;(async function(){
-    for(let pageCount of iterator){
+    for(let page of iterator){
         await sleep(180000);
+        
+        const pageCount = await getCounter();
         console.log(urlTelecrack+pageCount);
 
         const pageHtml = await fetcher(urlTelecrack+pageCount,180000);
@@ -98,9 +113,8 @@ const iterator = [...Array(365)].map((elem,i)=>i).slice(26,365);
         for (const linkPost of allPosts){
             const res = await fetcher(linkPost,1500);
             const check = await checkAuthor(res);
-            console.log(check,linkPost)
+            console.log(check,linkPost);
             if(check){
-
                 const postModel = new Post({
                     link:linkPost,
                     author:author,
@@ -113,7 +127,6 @@ const iterator = [...Array(365)].map((elem,i)=>i).slice(26,365);
                     }
                     console.log(data);
                   });
-
             }
         }
 
